@@ -24,7 +24,7 @@ function onSelectFolder(id: string) {
 
 // optional: expand a branch lazily (fetch deeper levels as needed)
 async function expandBranch(id: string) {
-  await useFetch(() => `${apiBase}/api/v1/filesystem/tree`, {
+  await $fetch(`${apiBase}/api/v1/filesystem/tree`, {
     query: { parentId: id, maxDepth: 1 }
   })
   await refreshTree();
