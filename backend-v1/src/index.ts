@@ -1,5 +1,6 @@
 import {Elysia} from "elysia";
-import {swagger} from '@elysiajs/swagger'
+import {swagger} from '@elysiajs/swagger';
+import {filesystem} from "./modules/filesystem";
 
 const app = new Elysia()
     .use(swagger({
@@ -11,12 +12,13 @@ const app = new Elysia()
             },
         }
     }))
-    .get("/up", () => "Application is running.", {
+    .get("/", () => "Application is running.", {
         detail: {
             summary: 'Get application health status.',
             tags: ['App']
         }
     })
+    .use(filesystem)
     .listen(8080);
 
 console.log(`🦊 Backend Service v1 is running at ${app.server?.hostname}:${app.server?.port}`);
