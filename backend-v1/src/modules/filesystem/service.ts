@@ -1,6 +1,6 @@
 import { getDirectoryTree, getFiles } from "./repository";
 
-export abstract class Filesystem {
+export abstract class FilesystemService {
     static async getDirectoryTree(parentId?: string, maxDepth?: number) {
         const rows = await getDirectoryTree({ parentId, maxDepth });
         return { nodes: rows };
