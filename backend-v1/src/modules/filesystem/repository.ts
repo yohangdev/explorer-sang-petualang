@@ -15,32 +15,30 @@ export async function getDirectoryTree({ parentId, maxDepth }: { parentId?: stri
     }
 
     const query = sql`
-    WITH RECURSIVE directory_tree AS (
-      -- anchor
-      SELECT
-        f.id,
-        f.name,
-        f.parent_id,
-        0::int AS depth
-      FROM ${directoriesTable} f
-      WHERE ${whereParent}
+        WITH RECURSIVE directory_tree AS (
+            -- anchor
+            SELECT f.id,
+                   f.name,
+                   f.parent_id,
+                   0::int AS depth
+            FROM ${directoriesTable} f
+            WHERE ${whereParent}
 
-      UNION ALL
-      -- recursive member
-      SELECT
-        c.id,
-        c.name,
-        c.parent_id,
-        ft.depth + 1
-      FROM ${directoriesTable} c
-      JOIN directory_tree ft ON c.parent_id = ft.id
-      ${depthLimit}
-    )
-    
-    SELECT id, name, parent_id, depth
-    FROM directory_tree
-    ORDER BY depth ASC, name ASC, id ASC
-  `
+            UNION ALL
+            -- recursive member
+            SELECT c.id,
+                   c.name,
+                   c.parent_id,
+                   ft.depth + 1
+            FROM ${directoriesTable} c
+                     JOIN directory_tree ft ON c.parent_id = ft.id
+            ${depthLimit}
+            )
+
+        SELECT id, name, parent_id, depth
+        FROM directory_tree
+        ORDER BY depth ASC, name ASC, id ASC
+    `
 
     const result = await db.execute(query);
 
