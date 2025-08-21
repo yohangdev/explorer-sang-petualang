@@ -46,3 +46,18 @@ export async function getDirectoryTree({ parentId, maxDepth }: { parentId?: stri
 
     return result.rows
 }
+
+export async function getFiles({ directoryId }: { directoryId?: string }) {
+    const query = sql`
+        SELECT id, name, size_bytes, mime_type, extension,
+               TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.MSOF') AS created_at,
+               TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS.MSOF') AS updated_at
+        FROM files
+        WHERE directory_id = ${directoryId}
+        ORDER BY name ASC
+    `
+
+    const result = await db.execute(query);
+
+    return result.rows
+}

@@ -3,8 +3,7 @@ import { Filesystem } from "./service";
 
 export const filesystem = new Elysia({ prefix: '/api/v1/filesystem' })
     .get('/tree', async ({ query }) => {
-        const { parentId, maxDepth } = query
-        return await Filesystem.getDirectoryTreeService(parentId, maxDepth)
+        return await Filesystem.getDirectoryTree(query.parentId, query.maxDepth)
     }, {
         query: t.Object({
             parentId: t.Optional(t.String({ format: 'uuid' })),
@@ -24,4 +23,7 @@ export const filesystem = new Elysia({ prefix: '/api/v1/filesystem' })
             summary: 'Get directories tree',
             tags: ['Filesystem']
         }
+    })
+    .get('/:id/files', async ({ params }) => {
+        return await Filesystem.getFiles(params.id)
     })
