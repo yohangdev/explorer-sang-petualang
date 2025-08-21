@@ -1,6 +1,7 @@
 import {Elysia} from "elysia";
 import {swagger} from '@elysiajs/swagger';
 import {filesystem} from "./modules/filesystem";
+import { cors } from "@elysiajs/cors";
 
 const app = new Elysia()
     .use(swagger({
@@ -19,6 +20,7 @@ const app = new Elysia()
         }
     })
     .use(filesystem)
+    .use(cors())
     .listen(8080);
 
 console.log(`🦊 Backend Service v1 is running at ${app.server?.hostname}:${app.server?.port}`);
