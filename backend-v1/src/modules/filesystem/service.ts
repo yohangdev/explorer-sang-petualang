@@ -3,7 +3,7 @@ import { getDirectoryTree, getFiles } from "./repository";
 export abstract class FilesystemService {
     static async getDirectoryTree(parentId?: string, maxDepth?: number) {
         const rows = await getDirectoryTree({ parentId, maxDepth });
-        return { nodes: rows };
+        return { directories: rows };
     }
 
     static async getFiles(directoryId?: string) {
