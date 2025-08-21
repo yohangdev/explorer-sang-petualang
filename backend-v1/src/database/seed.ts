@@ -9,6 +9,11 @@ const TOP_LEVEL_COUNT = 10;
 const SECOND_LEVEL_COUNT = 10;
 const THIRD_LEVEL_COUNT = 10;
 
+const FILES_PER_DIRECTORY = 10
+const FILE_SIZE_BYTES = 1024 * 1024
+const FILE_MIME = 'text/plain'
+const FILE_EXT = 'txt'
+
 async function createRoot(): Promise<string> {
     const id = uuidv7();
     const now = new Date();
@@ -22,11 +27,12 @@ async function createDirectory(id: string, name: string, parentId: string | null
     return id;
 }
 
-async function seedProcess() {
+async function seedDirectories() {
     const rootId = await createRoot();
     const idByPath = new Map<string, string>();
     idByPath.set('', rootId);
 
+    // @TODO - implement recursive
     for (let i = 1; i <= TOP_LEVEL_COUNT; i++) {
         const path1 = `${i}`;
         const id1 = uuidv7();
@@ -54,12 +60,39 @@ async function seedProcess() {
     }
 }
 
+export async function seedFiles() {
+    const directories = await db
+        .select({ id: schema.directoriesTable.id, name: schema.directoriesTable.name })
+        .from(schema.directoriesTable);
+
+    const now = new Date();
+
+    for (const dir of directories) {
+        for (let n = 1; n <= FILES_PER_DIRECTORY; n++) {
+            await db.insert(schema.filesTable).values({
+                id: uuidv7(),
+                directoryId: dir.id,
+                name: `File ${n}`,
+                sizeBytes: FILE_SIZE_BYTES,
+                mimeType: FILE_MIME,
+                extension: FILE_EXT,
+                createdAt: now,
+                updatedAt: now,
+            });
+        }
+    }
+}
+
 async function main() {
     console.log('Reset data.');
     await reset(db, schema);
 
-    await seedProcess();
-    console.log('Seeded directories data.');
+    console.log('Seeding directories data.');
+    await seedDirectories();
+
+    console.log('Seeding files data.');
+    await seedFiles();
+
     process.exit(0);
 }
 
