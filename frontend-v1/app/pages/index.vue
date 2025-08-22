@@ -32,8 +32,16 @@ async function expandBranch(id: string, depth: number) {
     return directory;
   })
   
-  const idx = directoriesTree.findIndex(directory => directory.id === id);  // idx = 1
+  const idx = directoriesTree.findIndex(directory => directory.id === id);
   directoriesTree.splice(idx + 1, 0, ...directoriesMap);
+}
+
+async function collapseBranch(id: string) {
+  for (let i = directoriesTree.length - 1; i >= 0; i--) {
+    if (directoriesTree[i].parent_id === id) {
+      directoriesTree.splice(i, 1);
+    }
+  }
 }
 </script>
 
@@ -60,6 +68,7 @@ async function expandBranch(id: string, depth: number) {
             </div>
             <div>
               <button class="ml-1 text-xs text-gray-400" @click="expandBranch(n.id, n.depth)">Expand</button>
+              <button class="ml-1 text-xs text-gray-400" @click="collapseBranch(n.id)">Collapse</button>
             </div>
           </div>
         </div>
