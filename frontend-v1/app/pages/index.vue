@@ -10,12 +10,12 @@ let directoriesTree = reactive(treeData.value.directories);
 
 const selectedId = ref<string | null>(null)
 
-const { data: childrenData, pending: childrenPending, error: childrenError, refresh: refreshChildren } =
+const { data: filesData, pending: filesPending, error: filesError, refresh: refreshFiles } =
     await useFetch(() => `${apiBase}/api/v1/filesystem/${selectedId.value}/files`, { immediate: false })
 
 function onSelectFolder(id: string) {
   selectedId.value = id;
-  refreshChildren();
+  refreshFiles();
 }
 
 async function expandBranch(id: string, depth: number) {
@@ -39,23 +39,17 @@ async function expandBranch(id: string, depth: number) {
 
 <template>
   <main class="h-dvh grid grid-cols-[350px_1fr]">
-    <!-- Left Pane: Tree -->
     <section class="border-r overflow-auto p-3">
-      <header class="mb-2 text-sm font-medium text-gray-500">Folders</header>
+      <header class="mb-2 text-sm font-medium text-gray-500">Directories</header>
       
       <div v-if="treePending" class="text-sm text-gray-500">Loading…</div>
-      <div v-else-if="treeError" class="text-sm text-red-600">Failed to load tree</div>
+      <div v-else-if="treeError" class="text-sm text-red-600">Failed to get directory tree</div>
       
-      <nav
-          v-else
-          role="tree" aria-label="Folder tree"
-          class="space-y-1"
-      >
+      <nav v-else role="tree" aria-label="Folder tree" class="space-y-1">
         <div class="flex flex-col">
           <div class="flex flex-row" v-for="n in directoriesTree || []" :key="n.id">
             <div>
               <button
-                  role="treeitem"
                   class="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   :class="n.id === selectedId ? 'bg-gray-100 font-medium' : ''"
                   :style="{ paddingLeft: `${(n.depth ?? 0) * 16 + 8}px` }"
@@ -75,19 +69,20 @@ async function expandBranch(id: string, depth: number) {
     
     <section class="overflow-auto p-3">
       <header class="mb-2 text-sm font-medium text-gray-500">
-        {{ selectedId ? 'Direct sub‑folders' : 'Select a folder on the left' }}
+        {{ selectedId ? 'Files' : 'Select directory' }}
       </header>
       
-      <div v-if="childrenPending" class="text-sm text-gray-500">Loading…</div>
-      <div v-else-if="childrenError" class="text-sm text-red-600">Failed to load children</div>
+      <div v-if="filesPending" class="text-sm text-gray-500">Loading…</div>
+      <div v-else-if="filesError" class="text-sm text-red-600">Failed to get files</div>
       
-      <ul v-else class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        <li v-for="c in childrenData?.files || []" :key="c.id"
-            class="border rounded p-3 hover:shadow-sm transition">
-          <div class="font-medium">{{ c.name }}</div>
-          <div class="text-xs text-gray-500">ID: {{ c.id }}</div>
-        </li>
-      </ul>
+      <div v-else class="flex flex-col gap-2">
+        <div v-for="file in filesData?.files || []" :key="file.id" class="border rounded p-3 hover:shadow-sm transition">
+          <div class="font-medium">{{ file.name }}</div>
+          <div class="text-xs text-gray-500">Mime: {{ file.mime_type }}</div>
+          <div class="text-xs text-gray-500">File Size: {{ file.size_bytes }}</div>
+          <div class="text-xs text-gray-500">ID: {{ file.id }}</div>
+        </div>
+      </div>
     </section>
   </main>
 </template>
