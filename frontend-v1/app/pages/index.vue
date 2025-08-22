@@ -1,33 +1,39 @@
 <script setup lang="ts">
 const { public: { apiBase } } = useRuntimeConfig()
 
-// initial tree: roots + first level for fast paint
 const { data: treeData, pending: treePending, error: treeError, refresh: refreshTree } =
     await useFetch(() => `${apiBase}/api/v1/filesystem/tree`, {
       query: { maxDepth: 1 }
     })
 
-// selection state
+let directoriesTree = reactive(treeData.value.directories);
+
 const selectedId = ref<string | null>(null)
 
-// right pane: direct children of selected folder
 const { data: childrenData, pending: childrenPending, error: childrenError, refresh: refreshChildren } =
-    await useFetch(() =>
-            selectedId.value ? `${apiBase}/api/v1/filesystem/${selectedId.value}/files` : null
-        , { immediate: false })
+    await useFetch(() => `${apiBase}/api/v1/filesystem/${selectedId.value}/files`, { immediate: false })
 
-// when the user clicks a node in the tree
 function onSelectFolder(id: string) {
   selectedId.value = id;
   refreshChildren();
 }
 
-// optional: expand a branch lazily (fetch deeper levels as needed)
-async function expandBranch(id: string) {
-  await $fetch(`${apiBase}/api/v1/filesystem/tree`, {
-    query: { parentId: id, maxDepth: 1 }
+async function expandBranch(id: string, depth: number) {
+  const { directories } = await $fetch(`${apiBase}/api/v1/filesystem/tree`, {
+    query: { parentId: id, maxDepth: 0 }
+  });
+  
+  if (directoriesTree.findIndex(directory => directory.parent_id === id) > 0) {
+    return;
+  }
+  
+  const directoriesMap = directories.map(directory => {
+    directory.depth = depth + 1;
+    return directory;
   })
-  await refreshTree();
+  
+  const idx = directoriesTree.findIndex(directory => directory.id === id);  // idx = 1
+  directoriesTree.splice(idx + 1, 0, ...directoriesMap);
 }
 </script>
 
@@ -45,19 +51,25 @@ async function expandBranch(id: string) {
           role="tree" aria-label="Folder tree"
           class="space-y-1"
       >
-        <button
-            v-for="n in treeData?.directories || []"
-            :key="n.id"
-            role="treeitem"
-            class="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-            :class="n.id === selectedId ? 'bg-gray-100 font-medium' : ''"
-            :style="{ paddingLeft: `${(n.depth ?? 0) * 16 + 8}px` }"
-            @click="onSelectFolder(n.id)"
-            @dblclick="expandBranch(n.id)"
-        >
-          {{ n.name }}
-          <span class="ml-1 text-xs text-gray-400">▸</span>
-        </button>
+        <div class="flex flex-col">
+          <div class="flex flex-row" v-for="n in directoriesTree || []" :key="n.id">
+            <div>
+              <button
+                  role="treeitem"
+                  class="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  :class="n.id === selectedId ? 'bg-gray-100 font-medium' : ''"
+                  :style="{ paddingLeft: `${(n.depth ?? 0) * 16 + 8}px` }"
+                  @click="onSelectFolder(n.id)"
+              >
+                {{ n.name }}
+              </button>
+            </div>
+            <div>
+              <button class="ml-1 text-xs text-gray-400" @click="expandBranch(n.id, n.depth)">Expand</button>
+            </div>
+          </div>
+        </div>
+        
       </nav>
     </section>
     
