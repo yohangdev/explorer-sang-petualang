@@ -3,7 +3,7 @@
 A file system explorer application built with modern web technologies. This proof of concept demonstrates a full-stack implementation with a Bun-based backend API and a Nuxt 3 frontend.
 
 ## Demo
-Link URL: TBD
+Link URL: https://explorer.devhub.id/
 
 ## Acknowledgement
 Penggunaan tools AI digunakan secara terbatas:
